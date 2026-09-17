@@ -81,6 +81,9 @@ input[aria-invalid="true"]{border-color:var(--warn)}
 .check[hidden]{display:none}
 .check{display:flex;gap:8px;align-items:center;margin-top:18px;font-weight:600;font-size:14px}
 .check input{width:auto;margin:0;accent-color:var(--teal)}
+.appq{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:18px}
+.appq-label{font-weight:600;font-size:14px}
+.appq .seg button{font-size:14px;padding:5px 12px}
 .status{font-size:14px;min-height:22px;color:var(--ok)}
 .status.bad{color:var(--warn)}
 .meter{font-size:13px;color:var(--muted)}
@@ -161,6 +164,14 @@ pre{font-family:"IBM Plex Mono",Consolas,monospace;font-size:12px;background:var
       </div>
       <p class="note" id="darknote" hidden data-t="darkNote"></p>
 
+      <div class="appq">
+        <span class="appq-label" id="app-label" data-t="appQ"></span>
+        <div class="seg" role="group" aria-labelledby="app-label">
+          <button type="button" data-app="outlook" aria-pressed="true">Outlook</button>
+          <button type="button" data-app="gmail" aria-pressed="false">Gmail</button>
+          <button type="button" data-app="apple" aria-pressed="false">Apple Mail</button>
+        </div>
+      </div>
       <div class="actions">
         <button class="btn primary" type="button" id="copy" data-t="copy"></button>
         <button class="btn ghost" type="button" id="copycode" data-t="copyCode"></button>
@@ -230,7 +241,7 @@ const T = {
     title:"חתימת מייל", intro:"ממלאים את הפרטים, מעתיקים ומדביקים בתוכנת המייל. העיצוב, הלוגו ושם הארגון קבועים.",
     yourDetails:"הפרטים שלך", name:"שם מלא", role:"תפקיד", dept:"מחלקה או מכון", optional:"(לא חובה)",
     mobile:"נייד", office:"טלפון במשרד", email:"אימייל",
-    fixedNote:"קבוע בכל החתימות:", preview:"תצוגה מקדימה", inbox:"כך זה ייראה במייל",
+    fixedNote:"קבוע בכל החתימות:", appQ:"באיזו תוכנת מייל?", embedNote:"ב-Outlook הלוגו נשמר בתוך החתימה, כך שיוצג גם כשתמונות חיצוניות חסומות. הגודל והמיקום כבר מוגדרים.", preview:"תצוגה מקדימה", inbox:"כך זה ייראה במייל",
     light:"בהיר", dark:"כהה", lockup:"לוגו מלא", layoutA:"פריסה א (נוכחית)", layoutB:"פריסה ב (חדשה)", optFill:"א · מילוי פנימי", optOutline:"ב · קו מתאר",
     darkNote:"קירוב של מצב כהה בתוכנות שהופכות צבעים (Outlook, Gmail בנייד). הלוגו לא מתהפך.",
     copy:"העתקת החתימה", copyCode:"העתקת קוד HTML", howTo:"איך מתקינים", code:"קוד HTML",
@@ -247,8 +258,8 @@ const T = {
     sample:{name:"שם מלא", title:"תפקיד", dept:"מחלקה", mobile:"050-000-0000", office:"08-000-0000", email:"name"},
     guide:{
       gmail:["פותחים Gmail, לוחצים על גלגל השיניים ואז 'הצגת כל ההגדרות'.","בלשונית 'כללי' גוללים ל'חתימה' ולוחצים 'יצירת חתימה חדשה'.","מדביקים (Ctrl+V / ⌘V) בתיבת החתימה. לא מקלידים כלום לפני.","בוחרים את החתימה כברירת מחדל להודעות חדשות ולתשובות, ושומרים בתחתית העמוד."],
-      owa:["ב-Outlook באינטרנט: גלגל השיניים ← חשבון ← חתימות.","לוחצים 'חתימה חדשה' ונותנים לה שם.","מדביקים בתיבת העריכה ושומרים.","בוחרים אותה כברירת מחדל להודעות חדשות ולתשובות."],
-      outlook:["ב-Outlook: קובץ ← אפשרויות ← דואר ← חתימות.","לוחצים 'חדש', נותנים שם ומדביקים בתיבת העריכה.","אם העיצוב משתנה, מדביקים שוב עם 'שמירה על עיצוב המקור'.","בוחרים את החתימה בצד ימין כברירת מחדל ולוחצים 'אישור'."],
+      owa:["לפני ההעתקה בוחרים Outlook בשאלה 'באיזו תוכנת מייל?'.","ב-Outlook באינטרנט: גלגל השיניים ← חשבון ← חתימות.","לוחצים 'חתימה חדשה' ונותנים לה שם.","מדביקים בתיבת העריכה ושומרים.","בוחרים אותה כברירת מחדל להודעות חדשות ולתשובות."],
+      outlook:["לפני ההעתקה בוחרים Outlook בשאלה 'באיזו תוכנת מייל?'.","אם כבר מותקנת חתימה ישנה, מוחקים אותה כולה.","ב-Outlook: קובץ ← אפשרויות ← דואר ← חתימות.","לוחצים 'חדש', נותנים שם ומדביקים בתיבת העריכה.","אם העיצוב משתנה, מדביקים שוב עם 'שמירה על עיצוב המקור'.","בוחרים את החתימה בצד ימין כברירת מחדל ולוחצים 'אישור'."],
       apple:["ב-Mail: הגדרות ← חתימות ← לוחצים + תחת החשבון.","מבטלים את הסימון 'התאמה תמיד לגופן ברירת המחדל של ההודעה'.","מדביקים בחלון החתימה.","סוגרים את ההגדרות. החתימה נשמרת אוטומטית."]
     }
   },
@@ -256,7 +267,7 @@ const T = {
     title:"Email signature", intro:"Fill in your details, copy, and paste into your mail app. The design, logo and organization name stay fixed.",
     yourDetails:"Your details", name:"Full name", role:"Job title", dept:"Department or institute", optional:"(optional)",
     mobile:"Mobile", office:"Office phone", email:"Email",
-    fixedNote:"Fixed on every signature:", preview:"Preview", inbox:"How it looks in an email",
+    fixedNote:"Fixed on every signature:", appQ:"Which email app?", embedNote:"For Outlook the logo is saved inside the signature, so it shows even when external images are blocked. Size and position are already set.", preview:"Preview", inbox:"How it looks in an email",
     light:"Light", dark:"Dark", lockup:"Full logo", layoutA:"Layout A (current)", layoutB:"Layout B (new)", optFill:"A · Inner fill", optOutline:"B · Outline",
     darkNote:"Approximates dark mode in apps that invert colors (Outlook, Gmail mobile). The logo is not inverted.",
     copy:"Copy signature", copyCode:"Copy HTML code", howTo:"How to install", code:"HTML code",
@@ -273,8 +284,8 @@ const T = {
     sample:{name:"Full name", title:"Role", dept:"Department", mobile:"+972 50 000 0000", office:"+972 8 000 0000", email:"name"},
     guide:{
       gmail:["Open Gmail, click the gear icon, then See all settings.","On the General tab, scroll to Signature and click Create new.","Paste (Ctrl+V / ⌘V) into the signature box without typing anything first.","Set it as the default for new emails and replies, then Save Changes at the bottom."],
-      owa:["In Outlook on the web: gear icon, then Account, then Signatures.","Click New signature and name it.","Paste into the editor and save.","Set it as the default for new messages and replies."],
-      outlook:["In Outlook: File, Options, Mail, Signatures.","Click New, name it, and paste into the edit box.","If the layout shifts, paste again using Keep Source Formatting.","Choose it as the default on the right and click OK."],
+      owa:["Before copying, choose Outlook under Which email app?","In Outlook on the web: gear icon, then Account, then Signatures.","Click New signature and name it.","Paste into the editor and save.","Set it as the default for new messages and replies."],
+      outlook:["Before copying, choose Outlook under Which email app?","If an older signature is installed, delete it completely.","In Outlook: File, Options, Mail, Signatures.","Click New, name it, and paste into the edit box.","If the layout shifts, paste again using Keep Source Formatting.","Choose it as the default on the right and click OK."],
       apple:["In Mail: Settings, Signatures, then + under your account.","Uncheck Always match my default message font.","Paste into the signature pane.","Close settings. It saves automatically."]
     }
   }
@@ -282,7 +293,9 @@ const T = {
 
 const $ = (s)=>document.querySelector(s);
 const FIELDS = ["name","title","dept","mobile","office","email"];
-let lang = "he", bg = "light", tab = "gmail";
+let lang = "he", bg = "light", tab = "outlook", app = "outlook";
+// Outlook blocks linked images by default, so for Outlook the logo travels inside the signature.
+const embedLogo = ()=>app==="outlook";
 const data = { he:{}, en:{} };
 let showEvents = true;
 let logoStyle = CONFIG.LOGO_STYLE;
@@ -299,14 +312,14 @@ function load(){
 }
 function save(){ try{ localStorage.setItem("adssc-sig-v2",JSON.stringify({data,lang,showEvents})); }catch(e){} }
 
-function buildSig(d, l, preview){
+function buildSig(d, l, preview, embed){
   const rtl = l==="he", al = rtl?"right":"left", C=CONFIG, t=T[l];
   const dirAttr = rtl?' dir="rtl"':' dir="ltr"';
   const rule = rtl?`border-right:2px solid ${C.ACCENT};padding-right:24px;`:`border-left:2px solid ${C.ACCENT};padding-left:24px;`;
   const isMark = logoStyle!=="lockup";
   const L = isMark ? C.MARK[logoStyle] : C.LOGO[l];
   // Preview uses an embedded copy (the page can't load remote images); the copied signature uses the hosted URL.
-  const src = preview ? (isMark ? PREVIEW_MARK[logoStyle] : PREVIEW_LOGO[l]) : L.url;
+  const src = (preview || embed) ? (isMark ? PREVIEW_MARK[logoStyle] : PREVIEW_LOGO[l]) : L.url;
   const logo = src ? `<img src="${esc(src)}" width="${L.width}" height="${L.height}" alt="${esc(C.ORG[l])}" style="display:block;width:${L.width}px;height:${L.height}px;border:0;">` : "";
   const line = (html, extra="")=>`<tr><td align="${al}" style="font-family:${C.FONT};${extra}">${html}</td></tr>`;
   const link = (href, text)=>`<a href="${href}" style="color:${C.INK};text-decoration:none;"><span dir="ltr">${esc(text)}</span></a>`;
@@ -372,12 +385,12 @@ function render(){
   const blank = FIELDS.every(f=>!d[f]);
   $("#sig").innerHTML = buildSig(blank ? T[lang].sample : d, lang, true);
   $("#sig").style.opacity = blank ? ".45" : "1";
-  const code = buildSig(d, lang, false);
+  const code = buildSig(d, lang, false, embedLogo());
   $("#code").textContent = code;
   const emailBad = d.email && !validEmail(d.email);
   $("#f-email").setAttribute("aria-invalid", String(!!emailBad));
   $("#e-email").textContent = emailBad ? t.badEmail : "";
-  $("#meter").textContent = t.chars(code.length) + ((logoStyle!=="lockup" ? CONFIG.MARK[logoStyle].url : CONFIG.LOGO[lang].url) ? "" : " — " + t.noLogo);
+  $("#meter").textContent = embedLogo() ? t.embedNote : t.chars(code.length);
 }
 
 function renderGuide(){
@@ -407,7 +420,7 @@ function fallbackCopy(html){
 
 $("#copy").addEventListener("click", async ()=>{
   if(!ready()) return;
-  const html = buildSig(data[lang], lang, false);
+  const html = buildSig(data[lang], lang, false, embedLogo());
   const plain = $("#sig").innerText;
   let ok=false;
   try{
@@ -424,7 +437,7 @@ $("#copy").addEventListener("click", async ()=>{
 
 $("#copycode").addEventListener("click", async ()=>{
   if(!ready()) return;
-  const code = buildSig(data[lang], lang, false);
+  const code = buildSig(data[lang], lang, false, embedLogo());
   let ok=false;
   try{ await navigator.clipboard.writeText(code); ok=true; }catch(e){
     const ta=document.createElement("textarea"); ta.value=code; ta.style.cssText="position:fixed;left:-9999px";
@@ -446,6 +459,11 @@ document.querySelectorAll("[data-bg]").forEach(b=>b.addEventListener("click", ()
   document.querySelectorAll("[data-bg]").forEach(x=>x.setAttribute("aria-pressed", String(x.dataset.bg===bg)));
   $("#mail").classList.toggle("dark", bg==="dark");
   $("#darknote").hidden = bg!=="dark";
+}));
+document.querySelectorAll("[data-app]").forEach(b=>b.addEventListener("click", ()=>{
+  app=b.dataset.app; tab=app;
+  document.querySelectorAll("[data-app]").forEach(x=>x.setAttribute("aria-pressed", String(x.dataset.app===app)));
+  $("#status").textContent=""; renderGuide(); render();
 }));
 document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click", ()=>{ tab=b.dataset.tab; renderGuide(); }));
 
