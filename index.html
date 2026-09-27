@@ -122,8 +122,10 @@ pre{font-family:"IBM Plex Mono",Consolas,monospace;font-size:12px;background:var
       <input id="f-name" autocomplete="name">
       <label for="f-title" data-t="role"></label>
       <input id="f-title" autocomplete="organization-title">
-      <label for="f-dept-select"><span data-t="dept"></span> <small data-t="optional"></small></label>
-      <select id="f-dept-select"></select>
+      <label for="f-dept"><span data-t="dept"></span> <small data-t="optional"></small></label>
+      <input id="f-dept">
+      <label for="f-logo-select"><span data-t="extraLogo"></span> <small data-t="optional"></small></label>
+      <select id="f-logo-select"></select>
       <label for="f-mobile"><span data-t="mobile"></span> <small data-t="optional"></small></label>
       <input id="f-mobile" class="ltr" type="tel" autocomplete="tel" dir="ltr">
       <label for="f-office"><span data-t="office"></span> <small data-t="optional"></small></label>
@@ -226,11 +228,14 @@ const CONFIG = {
   TABLE_WIDTH_WIDE: 560,
   LOGO_STYLE: "mail",          // "lockup" or "mail" (mark only)
   SHOW_LOGO_SWITCH: false,     // design review only
-  // Institutes: each may carry its own logo beside the ADSSC mark.
-  // Add the hosted PNG under logo.url (and its display size) once the artwork exists.
-  INSTITUTES: [
-    { id: "skin", he: "המכון לחקר העור", en: "Skin Research Institute",
-      logo: { url: "https://media-adssc.github.io/email/sri-email-mark@2x.png", width: 124, height: 64 } }
+  // Departments and institutes offered in the dropdown. A unit with a logo also
+  // appears in the "extra logo" list. Names here are the only wording staff can pick.
+  UNITS: [
+    { id: "skin",    he: "המכון לחקר העור",  en: "Skin Research Institute",
+      logo: { url: "https://media-adssc.github.io/email/sri-email-mark@2x.png", width: 124, height: 64 } },
+    { id: "floods",  he: "מחקר שיטפונות",    en: "Floods Research" },
+    { id: "spatial", he: "ביולוגיה מרחבית",  en: "Spatial Biology" },
+    { id: "acacia",  he: "מחקר שיטים",       en: "Acacia Research" }
   ],
   LAYOUT: "B",                 // "A" (original) or "B" (grouped hierarchy)
   SHOW_LAYOUT_SWITCH: false,   // design review only
@@ -249,7 +254,7 @@ const CONFIG = {
 const T = {
   he:{
     title:"חתימת מייל", intro:"ממלאים את הפרטים, מעתיקים ומדביקים בתוכנת המייל. העיצוב, הלוגו ושם הארגון קבועים.",
-    yourDetails:"הפרטים שלך", name:"שם מלא", role:"תפקיד", dept:"מחלקה או מכון", optional:"(לא חובה)", deptNone:"ללא",
+    yourDetails:"הפרטים שלך", name:"שם מלא", role:"תפקיד", dept:"מחלקה או מכון", optional:"(לא חובה)", deptNone:"ללא", deptOther:"אחר (להקליד)", extraLogo:"לוגו נוסף",
     mobile:"נייד", office:"טלפון במשרד", email:"אימייל",
     fixedNote:"קבוע בכל החתימות:", appQ:"באיזו תוכנת מייל?", embedNote:"ב-Outlook הלוגו נשמר בתוך החתימה, כך שיוצג גם כשתמונות חיצוניות חסומות. הגודל והמיקום כבר מוגדרים.", preview:"תצוגה מקדימה", inbox:"כך זה ייראה במייל",
     light:"בהיר", dark:"כהה", lockup:"לוגו מלא", layoutA:"פריסה א (נוכחית)", layoutB:"פריסה ב (חדשה)", optFill:"א · מילוי פנימי", optOutline:"ב · קו מתאר",
@@ -275,7 +280,7 @@ const T = {
   },
   en:{
     title:"Email signature", intro:"Fill in your details, copy, and paste into your mail app. The design, logo and organization name stay fixed.",
-    yourDetails:"Your details", name:"Full name", role:"Job title", dept:"Department or institute", optional:"(optional)", deptNone:"None",
+    yourDetails:"Your details", name:"Full name", role:"Job title", dept:"Department or institute", optional:"(optional)", deptNone:"None", deptOther:"Other (type it)", extraLogo:"Extra logo",
     mobile:"Mobile", office:"Office phone", email:"Email",
     fixedNote:"Fixed on every signature:", appQ:"Which email app?", embedNote:"For Outlook the logo is saved inside the signature, so it shows even when external images are blocked. Size and position are already set.", preview:"Preview", inbox:"How it looks in an email",
     light:"Light", dark:"Dark", lockup:"Full logo", layoutA:"Layout A (current)", layoutB:"Layout B (new)", optFill:"A · Inner fill", optOutline:"B · Outline",
@@ -302,8 +307,9 @@ const T = {
 };
 
 const $ = (s)=>document.querySelector(s);
-const FIELDS = ["name","title","mobile","office","email"];
-const instById = (id)=>CONFIG.INSTITUTES.find(x=>x.id===id) || null;
+const FIELDS = ["name","title","dept","mobile","office","email"];
+const unitById = (id)=>CONFIG.UNITS.find(x=>x.id===id) || null;
+const logoChoices = ()=>CONFIG.UNITS.filter(x=>x.logo && x.logo.url);
 let lang = "he", bg = "light", tab = "outlook", app = "outlook";
 // Outlook blocks linked images by default, so for Outlook the logo travels inside the signature.
 const embedLogo = ()=>app==="outlook";
@@ -332,7 +338,7 @@ function buildSig(d, l, preview, embed){
   const rule = rtl?`border-right:2px solid ${C.ACCENT};padding-right:24px;`:`border-left:2px solid ${C.ACCENT};padding-left:24px;`;
   const isMark = logoStyle!=="lockup";
   const L = isMark ? C.MARK[logoStyle] : C.LOGO[l];
-  const inst = instById(d.instId);
+  const inst = unitById(d.instId);
   const IL = (inst && inst.logo && inst.logo.url) ? inst.logo : null;
   const instImg = IL ? `<img src="${esc((preview||embed) ? (PREVIEW_INST[inst.id] || IL.url) : IL.url)}" width="${IL.width}" height="${IL.height}" alt="${esc(inst[l])}" style="display:block;width:${IL.width}px;height:${IL.height}px;border:0;">` : "";
   const logoBlockW = L.width + 24 + (IL ? IL.width + 16 : 0);
@@ -397,7 +403,7 @@ function applyLang(){
   document.querySelectorAll("[data-t]").forEach(el=>{ const v=t[el.dataset.t]; if(typeof v==="string") el.textContent=v; });
   document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.lang===lang)));
   FIELDS.forEach(f=>{ $("#f-"+f).value = data[lang][f]||""; });
-  renderDeptSelect();
+  renderLogoSelect();
   $("#fx-org").textContent = CONFIG.ORG[lang];
   $("#fx-web").textContent = CONFIG.WEBSITE;
   const mail=$("#mail"); mail.dir = lang==="he"?"rtl":"ltr"; mail.style.textAlign = lang==="he"?"right":"left";
@@ -407,17 +413,14 @@ function applyLang(){
   renderGuide(); render();
 }
 
-function renderDeptSelect(){
-  const t=T[lang], d=data[lang], sel=$("#f-dept-select");
-  if(!d.instId) d.dept = "";
+function renderLogoSelect(){
+  const t=T[lang], d=data[lang], sel=$("#f-logo-select");
   sel.innerHTML = [`<option value="">${esc(t.deptNone)}</option>`]
-    .concat(CONFIG.INSTITUTES.map(i=>`<option value="${esc(i.id)}">${esc(i[lang])}</option>`)).join("");
+    .concat(logoChoices().map(i=>`<option value="${esc(i.id)}">${esc(i[lang])}</option>`)).join("");
   sel.value = d.instId || "";
 }
-$("#f-dept-select").addEventListener("change", e=>{
-  const v=e.target.value, d=data[lang], i=instById(v);
-  d.instId = i ? v : "";
-  d.dept = i ? i[lang] : "";
+$("#f-logo-select").addEventListener("change", e=>{
+  data[lang].instId = e.target.value || "";
   save(); render();
 });
 
